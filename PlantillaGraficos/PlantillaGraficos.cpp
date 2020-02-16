@@ -13,6 +13,8 @@
 
 #include <iostream>
 
+#include <random>
+
 using namespace std;
 
 //Declarar una ventana
@@ -20,14 +22,22 @@ GLFWwindow* window;
 float posXTriangulo = 0.0f , posYTriangulo = 0.0f;
 
 float posXCuadrado = 0.5f, posYCuadrado = 0.5f;
+float rotacionTriangulo = 0.0f;
+float escalaTriangulo = 0.5f;
 
 double tiempoActual, tiempoAnterior;
 double velocidadTriangulo = 0.8;
+double velocidadRotacion = 60;
 
 //glColor3f(0.2, 0.6, 0.1);
 float rojoTriangulo = 0.2f;
 float verdeTriangulo = 0.6f;
 float azulTriangulo = 0.1f;
+
+default_random_engine generator;
+uniform_real_distribution<double> distribution(-1, 1); //doubles from -1 to 1
+
+bool colision = false;
 
 void teclado_callback(GLFWwindow* window,
 	int key, int scancode, int action, int mods) {
@@ -35,25 +45,25 @@ void teclado_callback(GLFWwindow* window,
 	if (
 		(action == GLFW_PRESS || action == GLFW_REPEAT) 
 		&& key == GLFW_KEY_RIGHT) {
-		posXTriangulo += 0.01;
+		posXTriangulo += 0.01f;
 	}
 
 	if (
 		(action == GLFW_PRESS || action == GLFW_REPEAT)
 		&& key == GLFW_KEY_LEFT) {
-		posXTriangulo -= 0.01;
+		posXTriangulo -= 0.01f;
 	}
 
 	if (
 		(action == GLFW_PRESS || action == GLFW_REPEAT)
 		&& key == GLFW_KEY_UP) {
-		posYTriangulo += 0.01;
+		posYTriangulo += 0.01f;
 	}
 
 	if (
 		(action == GLFW_PRESS || action == GLFW_REPEAT)
 		&& key == GLFW_KEY_DOWN) {
-		posYTriangulo -= 0.01;
+		posYTriangulo -= 0.01f;
 	}
 
 
@@ -61,7 +71,7 @@ void teclado_callback(GLFWwindow* window,
 }
 
 void checarColisiones() {
-
+    double random_number = distribution(generator);
 	if (
 		//Orilla derecha del triangulo es mayor que
 		//la orilla izquierda del cuadrado
@@ -74,17 +84,30 @@ void checarColisiones() {
 		posYTriangulo + 0.15f >= posYCuadrado - 0.15f &&
 		//Orilla inferior triangulo menor que
 		//la orilla superior del cuadrado
-		posYTriangulo - 0.15f <= posYCuadrado + 0.15f
+		posYTriangulo - 0.15f <= posYCuadrado + 0.15f 
 		) {
-		rojoTriangulo = 0.0f;
-		verdeTriangulo = 0.0f;
-		azulTriangulo = 0.0f;
+        // Aumentar tamaño del triangulo con cada colision
+        escalaTriangulo += 0.05;
+
+        // Generar el objeto en otra posición
+        posXCuadrado = random_number;
+        cout << "\n" << random_number;
+        random_number = distribution(generator);
+        posYCuadrado = random_number;
+        cout << "\n" << random_number;
+
+        if (!colision) {
+            colision = true;
+        }
 		//exit(1);
 	}
 	else {
 		rojoTriangulo = 0.2f;
 		verdeTriangulo = 0.6f;
 		azulTriangulo = 0.1f;
+        if (colision) {
+            colision = false;
+        }
 	}
 }
 
@@ -95,34 +118,52 @@ void actualizar() {
 
 	double tiempoDiferencial = 
 		tiempoActual - tiempoAnterior;
+
+    // Siempre avanza
+    posYTriangulo += (velocidadTriangulo * sin((rotacionTriangulo + 90.0) * 3.1416 / 180)) * tiempoDiferencial;
+    posXTriangulo += (velocidadTriangulo * cos((rotacionTriangulo + 90.0) * 3.1416 / 180)) * tiempoDiferencial;
+
+    int estadoIzquierda = glfwGetKey(window, GLFW_KEY_LEFT);
+    if (estadoIzquierda == GLFW_PRESS) {
+        rotacionTriangulo += velocidadRotacion * tiempoDiferencial;
+    }
+
 	int estadoDerecha =
 		glfwGetKey(window, GLFW_KEY_RIGHT);
-	if (estadoDerecha == GLFW_PRESS) {
-		posXTriangulo += velocidadTriangulo * tiempoDiferencial;
-	}
-	int estadoArriba =
-		glfwGetKey(window, GLFW_KEY_UP);
-	if (estadoArriba == GLFW_PRESS) {
-		posYTriangulo += velocidadTriangulo * tiempoDiferencial;
-	}
-	int estadoIzquierda =
-		glfwGetKey(window, GLFW_KEY_LEFT);
-	if (estadoIzquierda == GLFW_PRESS) {
-		posXTriangulo -= velocidadTriangulo * tiempoDiferencial;
-	}
-	int estadoAbajo =
-		glfwGetKey(window, GLFW_KEY_DOWN);
-	if (estadoAbajo == GLFW_PRESS) {
-		posYTriangulo -= velocidadTriangulo * tiempoDiferencial;
-	}
+    if (estadoDerecha == GLFW_PRESS) {
+        rotacionTriangulo -= velocidadRotacion * tiempoDiferencial;
+    }
+    // Reset angulo
+    if (rotacionTriangulo >= 360) {
+        rotacionTriangulo = 0;
+    }
+
+    if (rotacionTriangulo <= -360) {
+        rotacionTriangulo = 0;
+    }
 
 	tiempoAnterior = tiempoActual;
 }
 
 void dibujarTriangulo() {
 	glPushMatrix();
+    if (posXTriangulo >= 1.15) {
+        posXTriangulo = -1.1;
+    }
+    if (posXTriangulo <= -1.15) {
+        posXTriangulo = 1.1;
+    }
+
+    if (posYTriangulo >= 1.15) {
+        posYTriangulo = -1.1;
+    }
+    if (posYTriangulo <= -1.15) {
+        posYTriangulo = 1.1;
+    }
 
 	glTranslatef(posXTriangulo, posYTriangulo, 0.0f);
+    glRotatef(rotacionTriangulo, 0, 0, 1);  
+    glScalef(escalaTriangulo, escalaTriangulo, escalaTriangulo);
 
 	glBegin(GL_TRIANGLES);
 
@@ -142,7 +183,7 @@ void dibujarCuadrado() {
 
 	glBegin(GL_QUADS);
 
-	glColor3f(0.7, 0.2, 0.5);
+	glColor3f(0.7f, 0.2f, 0.5f);
 	glVertex3f(-0.15f, 0.15f, 0.0f);
 	glVertex3f(0.15f, 0.15f, 0.0f);
 	glVertex3f(0.15f, -0.15f, 0.0f);
@@ -205,7 +246,7 @@ int main()
 		glViewport(0, 0, 600, 600);
 		//Establecemos el color de borrado
 		//Valores RGBA
-		glClearColor(1, 0.8, 0, 1);
+		glClearColor(1.0f, 0.8f, 0.0f, 1.0f);
 		//Borrar!
 		glClear(GL_COLOR_BUFFER_BIT | 
 			GL_DEPTH_BUFFER_BIT);
