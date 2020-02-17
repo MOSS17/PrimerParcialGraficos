@@ -36,9 +36,9 @@ double velocidadTriangulo = 0.8;
 double velocidadRotacion = 60;
 
 //glColor3f(0.2, 0.6, 0.1);
-float rojoTriangulo = 0.2f;
-float verdeTriangulo = 0.6f;
-float azulTriangulo = 0.1f;
+float rojoTriangulo = 1.0f;
+float verdeTriangulo = 1.0f;
+float azulTriangulo = 1.0f;
 
 default_random_engine generator;
 uniform_real_distribution<double> distribution(-1, 1); //doubles from -1 to 1
@@ -250,10 +250,20 @@ void dibujarTriangulo() {
 
 	glColor3f(rojoTriangulo, verdeTriangulo, azulTriangulo);
 	glVertex3f(0.0f, 0.15f, 0.0f);
-	glVertex3f(-0.15f, -0.15f, 0.0f);
-	glVertex3f(0.15f, -0.15f, 0.0f);
+	glVertex3f(-0.15f, -0.07f, 0.0f);
+	glVertex3f(0.15f, -0.07f, 0.0f);
 
 	glEnd();
+
+    glBegin(GL_QUADS);
+
+    glColor3f(rojoTriangulo, verdeTriangulo, azulTriangulo);
+    glVertex3f(-0.15f, -0.07f, 0.0f);
+    glVertex3f(0.15f, -0.07f, 0.0f);
+    glVertex3f(0.15f, -0.15f, 0.0f);
+    glVertex3f(-0.15f, -0.15f, 0.0f);
+
+    glEnd();
 	glPopMatrix();
 }
 
@@ -785,7 +795,7 @@ int main()
 		glViewport(0, 0, 600, 600);
 		//Establecemos el color de borrado
 		//Valores RGBA
-		glClearColor(1.0f, 0.8f, 0.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		//Borrar!
 		glClear(GL_COLOR_BUFFER_BIT | 
 			GL_DEPTH_BUFFER_BIT);
